@@ -1,0 +1,21 @@
+------------
+CREATIVE.TXT
+------------
+
+Usage:
+Type username and click "Set username" to enter the lobby. Note, username
+must be unique. Will be rejected if another user w/ same name exists.
+
+By default can communicate on lobby
+
+Create room by clicking "create room". User enters new room by default.
+
+User is admin of room they create.
+
+Admins can elevate others to admin, perma ban or temp ban users
+
+CREATIVE:
+
+John Cena Theme song notification message!!
+Admins can delete entire room
+Admins can elevate other users to admin in the room

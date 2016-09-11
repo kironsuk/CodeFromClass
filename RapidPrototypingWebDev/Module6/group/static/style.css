@@ -1,0 +1,37 @@
+
+#create_chatroom {
+  background-color: #4CAF50; /* Green */
+}
+
+#dropButton {
+  background-color: orangered;
+}
+
+#elevate {
+  background-color: yellow;
+}
+
+#room_users{
+	float: right;
+  	top: 1em;
+  	right: 1em;
+    border: 3px solid #8AC007;
+}
+
+.fromServer {
+  color: gray;
+  font-style: italic;
+}
+
+button{
+  padding:5px 5px;
+  background:#ccc;
+  border:1 none;
+  cursor:pointer;
+  line-height: 18px;
+  border-radius: 5px;
+}
+
+body {
+  font-size: 1.2em;
+}

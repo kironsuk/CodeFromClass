@@ -1,0 +1,9 @@
+Kiron Sukesan 414330
+James DiLorenzo 413666
+
+Homepage Link: http://ec2-52-25-178-224.us-west-2.compute.amazonaws.com/~jdilorenzo/module3/home.php
+
+Creative portion:
+-We added voting. If you are logged in you can vote on posts. Each user only has one upvote or downvote per post
+
+-We also added a User Profile page. Users can see all their posts and comments here, change their password, or delete their account. Note that when users delete their acount we decided that we would keep their posts and comments and just change author of their comments to the "deleted" user. (similar to reddit)

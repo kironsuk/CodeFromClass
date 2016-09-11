@@ -1,0 +1,39 @@
+----------
+TABLE INFO
+----------
+
+User:
+
+Username VARCHAR(50) NOT NULL,
+Password VARCHAR(50) NOT NULL,
+Email VARCHAR(50) not null
+
+News:
+
+PostID int unsigned not null auto_increment,
+CreatorID VARCHAR(50) NOT NULL,
+Score mediumint not null,
+Title VARCHAR(150),
+Body BLOB,
+Link VARCHAR(150),
+PRIMARY KEY (PostID),
+FOREIGN KEY (CreatorID) REFERENCES user(username)
+
+Comments:
+
+CommentID int unsigned not null auto_increment,
+CreatorID VARCHAR(50) NOT NULL,
+PostID int unsigned not null,
+Body BLOB,
+PRIMARY KEY (CommentID),
+FOREIGN KEY (CreatorID) REFERENCES user(username),
+FOREIGN KEY (PostID) REFERENCES news(PostID)
+
+Score:
+
+PostID int unsigned not null,
+UserID VARCHAR(50) NOT NULL,
+Value TINYINT,
+PRIMARY KEY (PostID, UserID)
+FOREIGN KEY (PostID) REFERENCES news(PostID),
+FOREIGN KEY (UserID) REFERENCES user(username)

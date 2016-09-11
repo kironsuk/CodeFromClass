@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Chat Room</title>
+      <link rel="stylesheet" type="text/css" href="style.css" />
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+      <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+      <script type ="text/javascript">
+
+
+
+      var usr = "default";
+      var chatrm;
+      var socketio = io.connect();
+      var socketID;
+      var admin = false;
+
+      socketio.on("banned",function(){
+              console.log("i've been banned");
+              socketio.emit('request_room_change','lobby');
+              $('#chatrooms').val('lobby');
+      });
+
+      socketio.on('change_room', function(newRoom){
+        $('#chatrooms').val(newRoom);
+        chatrm = newRoom;
+      });
+
+      socketio.on('setUser', function(user){
+        usr = user;
+        $('#username_input').hide();
+        $('#set_username').hide();
+        $('#message').children().show();
+      });
+
+      socketio.on("message_to_client",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("cena").play();
+
+         var messageElement = document.createElement("hr");
+          document.getElementById("chatlog").appendChild(messageElement);
+        if (data['username']==='server'){
+          messageElement.className = 'fromServer';
+         }
+         var message = document.createTextNode(data['username']+" says: "+data['message']);
+          $(messageElement).append(message);
+         //document.getElementById("chatlog").appendChild(messageElement);
+      });
+
+      socketio.on("updaterooms",function(rooms) {
+        $("#chatrooms").empty();
+        $.each(rooms, function(id, room) {
+          var option = document.createElement('option');
+          option.text = room;
+          option.value = room;
+          $('#chatrooms').append(option);
+        });
+      });
+
+      socketio.on("refresh_users", function(users) {
+        $('#room_users').empty();
+        var start = document.createElement('div');
+        start.id = "start";
+        start.innerHTML = "<strong>Users</strong>";
+        $('#room_users').append(start);
+        if (admin){
+          var dropButton = document.createElement("button");
+          dropButtonText = document.createTextNode("Drop Room");
+          dropButton.id = "dropButton";
+          dropButton.appendChild(dropButtonText);
+          $(dropButton).click(function(event){
+            socketio.emit('dropRoom', chatrm);
+          });
+          $('#room_users').append(dropButton);
+        }
+        for(i = 0; i < users.length; i++){
+          var user = users[i];
+          addClickableUser(user);
+        }
+      });
+
+      function addClickableUser(user){
+        var userElement = document.createElement('div');
+
+        userElement.value = user;
+        userElement.innerHTML = user;
+        $('#room_users').append(userElement);
+        if (user===usr){
+          return;
+        }
+        var pm = document.createElement('button');
+        var pmtext = document.createTextNode("PM");
+        pm.appendChild(pmtext);
+        pm.value = user;
+        $(pm).click(function(event) {
+          console.log("clicked");
+          msg = prompt("To "+event.target.value+": ");
+          socketio.emit('private_message', {target_user: event.target.value, message: msg});
+        });
+        userElement.appendChild(pm);
+        if (admin){
+          var ban = document.createElement('button');
+          ban.value = user;
+          var bantext = document.createTextNode("BAN");
+          ban.appendChild(bantext);
+          $(ban).click(function(event) {
+            console.log("clicked");
+            socketio.emit('permBanUser', event.target.value);
+          });
+          userElement.appendChild(ban);
+
+          var tempBan = document.createElement('button');
+          tempBan.value = user;
+          var tempbantext = document.createTextNode("TEMPBAN");
+          tempBan.appendChild(tempbantext);
+          $(tempBan).click(function(event) {
+            socketio.emit('tempBanUser', event.target.value);
+          });
+          userElement.appendChild(tempBan);
+
+          var elevate = document.createElement('button');
+          elevate.value = user;
+          var elevateText = document.createTextNode("ELEVATE");
+          elevate.appendChild(elevateText);
+          $(elevate).click(function(event) {
+            socketio.emit('add_admin', event.target.value);
+          });
+          userElement.appendChild(elevate);
+
+        }
+
+      }
+
+      socketio.on("request_password", function(room_name){
+        var pass = prompt("Enter password for room "+room_name+": ");
+        socketio.emit('receive_password', {room: room_name, password: pass});
+      })
+
+      socketio.on("setID", function(sID) {
+        socketID = sID;
+      })
+
+      socketio.on('youAreAdmin', function(){
+        admin = true;
+      });
+
+      socketio.on('youAreNotAdmin', function(){
+        admin = false;
+
+      });
+
+      function sendMessage(){
+         var msg = document.getElementById("message_input").value;
+         socketio.emit("message_to_server", {username: usr, message:msg, chatroom: chatrm});
+      }
+
+      function setUsername(){
+        console.log("Setting username");
+        var usr = document.getElementById('username_input').value;
+
+        socketio.emit('adduser', usr);
+
+      }
+      function chatroomUpdated(){
+
+        $('#chatlog').empty();
+        chatrm = $('#chatrooms').find(":selected").text();
+        socketio.emit('request_room_change',chatrm);
+        $("#chatrooms select").val(chatrm);
+      }
+
+      function createChatRoom(){
+        var roomName = prompt("Enter room name: ");
+        if (roomName == null){
+          return;
+        }
+        var has_pass = false;
+        var pw;
+        if (confirm("Password protect?")){
+          has_pass = true;
+          pw = prompt("Password: ");
+        }
+        socketio.emit('createroom',{name: roomName, has_password: has_pass, password: pw} );
+        socketio.emit('changeroom',roomName);
+      }
+
+      $(document).ready(hideMessenger);
+      $(document).ready(loadListeners);
+
+      function hideMessenger() {
+        $('#send_message').hide();
+        $('#message').children().hide();
+        document.getElementById('')
+      }
+
+      function loadListeners() {
+        document.getElementById('send_message').addEventListener("click",sendMessage,false);
+        document.getElementById('set_username').addEventListener("click",setUsername,false);
+        document.getElementById('chatrooms').addEventListener("change",chatroomUpdated,false);
+        document.getElementById('create_chatroom').addEventListener("click",createChatRoom,false);
+        socketio.emit('getID');
+        //$("#chatrooms").change(chatroomUpdated);
+      }
+
+      </script>
+   </head>
+
+   <body>
+     <audio id="cena" src="cena_cut.mp3"></audio>
+      <input type="text" id="username_input"/>
+      <button type="button" id="set_username">Set username</button> <br>
+      <div id="chatlog"></div>
+
+      <div id="room_users"></div>
+      <div id="message">
+        <input type="text" id="message_input"/>
+        <button type="button" id="send_message">send</button>
+      </div>
+      <select id = "chatrooms">
+        <option selected= 'selected'>lobby</option>
+      </select> <br>
+      <button type="button" id="create_chatroom">Create Room</button>
+   </body>
+</html>
